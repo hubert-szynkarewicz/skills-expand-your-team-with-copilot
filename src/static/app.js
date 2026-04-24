@@ -568,6 +568,22 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `
         }
+        <div class="share-container">
+          <button class="share-button" data-activity="${name}" aria-label="Share this activity">
+            <span class="share-icon" aria-hidden="true">&#8679;</span> Share
+          </button>
+          <div class="share-popover hidden" id="share-popover-${name.replace(/\s+/g, '-')}">
+            <a class="share-option share-twitter" href="#" data-activity="${name}" aria-label="Share on Twitter/X">
+              𝕏 Twitter/X
+            </a>
+            <a class="share-option share-whatsapp" href="#" data-activity="${name}" aria-label="Share on WhatsApp">
+              💬 WhatsApp
+            </a>
+            <button class="share-option share-copy" data-activity="${name}" aria-label="Copy activity details">
+              🔗 Copy Details
+            </button>
+          </div>
+        </div>
       </div>
     `;
 
@@ -587,7 +603,64 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // Add click handler for share button
+    const shareButton = activityCard.querySelector(".share-button");
+    const sharePopover = activityCard.querySelector(".share-popover");
+    shareButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      // Close all other open popovers
+      document.querySelectorAll(".share-popover:not(.hidden)").forEach((p) => {
+        if (p !== sharePopover) p.classList.add("hidden");
+      });
+      sharePopover.classList.toggle("hidden");
+    });
+
+    // Share on Twitter/X
+    const twitterLink = activityCard.querySelector(".share-twitter");
+    twitterLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      const text = buildShareText(name, details);
+      window.open(
+        `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+      sharePopover.classList.add("hidden");
+    });
+
+    // Share on WhatsApp
+    const whatsappLink = activityCard.querySelector(".share-whatsapp");
+    whatsappLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      const text = buildShareText(name, details);
+      window.open(
+        `https://wa.me/?text=${encodeURIComponent(text)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+      sharePopover.classList.add("hidden");
+    });
+
+    // Copy link to clipboard
+    const copyButton = activityCard.querySelector(".share-copy");
+    copyButton.addEventListener("click", () => {
+      const text = buildShareText(name, details);
+      navigator.clipboard.writeText(text).then(() => {
+        copyButton.textContent = "✅ Copied!";
+        setTimeout(() => {
+          copyButton.textContent = "🔗 Copy Details";
+        }, 2000);
+      });
+      sharePopover.classList.add("hidden");
+    });
+
     activitiesList.appendChild(activityCard);
+  }
+
+  // Build a shareable text for an activity
+  function buildShareText(name, details) {
+    const schedule = formatSchedule(details);
+    return `Check out "${name}" at Mergington High School! 📚\nSchedule: ${schedule}\nDescription: ${details.description}`;
   }
 
   // Event listeners for search and filter
@@ -671,6 +744,12 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("click", (event) => {
     if (event.target === registrationModal) {
       closeRegistrationModalHandler();
+    }
+    // Close any open share popovers when clicking outside
+    if (!event.target.closest(".share-container")) {
+      document.querySelectorAll(".share-popover:not(.hidden)").forEach((p) => {
+        p.classList.add("hidden");
+      });
     }
   });
 
