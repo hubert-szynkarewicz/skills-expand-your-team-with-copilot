@@ -716,10 +716,6 @@ footer {
 }
 
 /* Dark mode body background covers the full viewport */
-[data-theme="dark"] body {
-  background-color: var(--background);
-}
-
 html[data-theme="dark"] {
-  background-color: #121212;
+  background-color: var(--background);
 }
